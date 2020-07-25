@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+'use strict';
+
+import('../dist/openapi-generator-typescript.mjs').then(mod => mod._runCli());

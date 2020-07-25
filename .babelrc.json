@@ -1,0 +1,16 @@
+{
+  "presets": [
+    [
+      "@babel/env"
+    ],
+    [
+      "@babel/typescript"
+    ]
+  ],
+  "compact": false,
+  "env": {
+    "development": {
+      "compact": false
+    }
+  }
+}

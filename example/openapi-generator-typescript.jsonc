@@ -1,0 +1,32 @@
+{
+  // list of all swagger document services we use
+  "documents": [
+    {
+      "namespace": "Petstore3",
+      "url": "https://petstore3.swagger.io/api/v3/openapi.json",
+      "path": "api-docs/petstore3.json"
+    },
+    {
+      "namespace": "LinkExample",
+      "url": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/link-example.yaml",
+      "path": "api-docs/link-example.yaml"
+    },
+    {
+      "namespace": "PetstoreExpanded",
+      "url": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore-expanded.yaml",
+      "path": "api-docs/petstore-expanded.yaml"
+    },
+    {
+      "namespace": "Petstore",
+      "url": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+      "path": "api-docs/petstore.yaml"
+    },
+    {
+      "namespace": "Uspto",
+      "url": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/uspto.yaml",
+      "path": "api-docs/uspto.yaml"
+    }
+  ],
+  // the generated ts file path which relative to the path of configuration file
+  "targetFile": "swagger/open-api-docs.ts"
+}

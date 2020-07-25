@@ -1,0 +1,54 @@
+{
+  "name": "@yuanfudao/openapi-generator-typescript",
+  "version": "0.1.0-alpha.0",
+  "main": "dist/openapi-generator-typescript.mjs",
+  "repository": "https://github.com/yuantiku/openapi-generator-typescript.git",
+  "author": "ZHAO Jinxiang <xiaoxiangmoe@gmail.com>",
+  "license": "MIT",
+  "bin": {
+    "openapi-generator-typescript": "./bin/openapi-generator-typescript"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "pre-publish": "shx rm -rf dist types temp && yarn build",
+    "build": "rollup --config ./rollup.config.mjs && tsc --project './tsconfig.build.json' && api-extractor run --local --verbose --config api-extractor.jsonc",
+    "run-example-update": "rollup --config ./rollup.config.mjs && ./bin/openapi-generator-typescript --config ./example/openapi-generator-typescript.jsonc --update",
+    "run-example-generate": "rollup --config ./rollup.config.mjs && ./bin/openapi-generator-typescript --config ./example/openapi-generator-typescript.jsonc --generate"
+  },
+  "dependencies": {
+    "js-yaml": "^3.14.0",
+    "jsonc-parser": "^2.3.0",
+    "lodash": "^4.17.19",
+    "node-fetch": "^2.6.0",
+    "safe-identifier": "^0.4.1",
+    "utils-ts": "^0.1.0-alpha.3",
+    "yargs": "^15.4.1"
+  },
+  "devDependencies": {
+    "@angular/common": "^10.0.5",
+    "@angular/core": "^10.0.5",
+    "@babel/core": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-typescript": "^7.10.4",
+    "@microsoft/api-extractor": "^7.9.2",
+    "@rollup/plugin-babel": "^5.1.0",
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@types/js-yaml": "^3.12.5",
+    "@types/lodash": "^4.14.158",
+    "@types/node-fetch": "^2.5.7",
+    "@types/yargs": "^15.0.5",
+    "openapi3-ts": "^1.4.0",
+    "prettier": "^2.0.5",
+    "rollup": "^2.23.0",
+    "rxjs": "^6.6.0",
+    "shx": "^0.3.2",
+    "ts-node": "^8.10.2",
+    "ts-toolbelt": "^6.13.28",
+    "typescript": "^3.9.7"
+  }
+}
