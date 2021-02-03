@@ -10,11 +10,12 @@ import type {
   ResponseObject,
   DiscriminatorObject,
   RequestBodyObject,
+  OperationObject,
 } from 'openapi3-ts';
 import { ApiDocumentWithObject } from './config-file-model';
 import { identifier, property } from 'safe-identifier';
 import { parseUrlTemplate } from './utils';
-import { isNotUndefined, isNotNil, identity } from 'utils-ts';
+import { isNotNil, identity } from 'utils-ts';
 import * as assert from 'assert';
 import { repeat, difference, mapValues, omit } from 'lodash-es';
 
@@ -94,6 +95,42 @@ export const formatComments = (comments: readonly string[]) =>
     : `/**${comments.map(x => `\n * ${x}`).join('')}
  */`;
 
+type OperationObjectWithExtraData = {
+  readonly operationObject: OperationObject;
+  readonly method: HttpMethods;
+  readonly operationIdIdentifier: string;
+  readonly path: string;
+};
+
+export function getOperationObjectJSDoc({
+  operationObject: { summary, description, tags, deprecated },
+  method,
+  path,
+}: OperationObjectWithExtraData) {
+  const tagsDoc = tags?.length ? `\n* __tags__: ${tags.join(', ')}` : '';
+
+  const requestDoc = `* __method__: ${method.toUpperCase()}
+* __path__: ${path}${tagsDoc}`;
+  const otherDocs = [
+    description ? `@description\n` + description : undefined,
+    deprecated ? '@deprecated' : undefined,
+  ].filter(isNotNil);
+  return formatComments(
+    [
+      summary ? summary + '\n' : undefined,
+      requestDoc,
+      ...(otherDocs.length === 0
+        ? []
+        : [
+            '\n-------------------------------------------------------------------------\n',
+            ...otherDocs,
+          ]),
+    ]
+      .filter(isNotNil)
+      .flatMap(x => x.split('\n'))
+  );
+}
+
 export function formatSchemasJSDoc({
   description,
   format,
@@ -116,6 +153,42 @@ export function formatSchemasJSDoc({
 
   return formatComments(a);
 }
+
+const pathsObjectEntries = (
+  paths: PathsObject,
+  allowOperations?: ReadonlyArray<string>
+) =>
+  Object.entries(paths)
+    .map(([path, pathItemObject]) => ({
+      path,
+      pathItemObject: pathItemObject as PathItemObject,
+    }))
+    .flatMap(({ path, pathItemObject }) =>
+      httpMethods
+        .map(method => {
+          const operationObject = pathItemObject[method];
+          if (operationObject == null) {
+            return null;
+          }
+          const { operationId } = operationObject;
+
+          if (operationId == null) {
+            return null;
+          }
+
+          return {
+            operationObject,
+            operationId,
+            operationIdIdentifier: identifier(operationId),
+            method,
+            path,
+          };
+        })
+        .filter(isNotNil)
+    )
+    .filter(
+      ({ operationId }) => allowOperations?.includes(operationId) ?? true
+    );
 
 const formatEntries = (
   xs: ReadonlyArray<{
@@ -163,9 +236,8 @@ export const resolveValue = (schema: SchemaObject): string =>
   isReferenceObject(schema) ? getRef(schema) : getScalar(schema);
 
 export const generateEnumSchema = (name: string, schema: SchemaObject) =>
-  `${formatSchemasJSDoc(schema) ?? ''}export ${
-    useConstEnum ? 'const ' : ''
-  }enum ${identifier(name)} {
+  `${formatSchemasJSDoc(schema) ?? ''}
+export ${useConstEnum ? 'const ' : ''}enum ${identifier(name)} {
 ${formatEntries(
   schema.enum!.map(v =>
     schema.type === 'string'
@@ -392,31 +464,14 @@ const httpMethods = [
   'patch',
   'trace',
 ] as const;
-
+type HttpMethods = typeof httpMethods[number];
 export const generatePathsDefinition = (
   pathsObject: PathsObject,
   operations?: ReadonlyArray<string>
 ) =>
-  Object.entries(pathsObject)
-    .flatMap(([url, pathItemObject]) =>
-      httpMethods
-        .map(method => {
-          const operationObject = (pathItemObject as PathItemObject)[method];
-          return operationObject === undefined
-            ? undefined
-            : ({
-                method,
-                url,
-                operationObject,
-              } as const);
-        })
-        .filter(isNotUndefined)
-    )
-    .filter(
-      ({ operationObject }) =>
-        operations?.includes(operationObject.operationId!) ?? true
-    )
-    .map(({ method, url, operationObject }) => {
+  pathsObjectEntries(pathsObject, operations)
+    .map(x => {
+      const { method, path: url, operationObject, operationIdIdentifier } = x;
       // TODO: 忽略了所有的 ReferenceObject
       const parameters = (operationObject.parameters ?? []).filter(
         isNotReferenceObject
@@ -597,7 +652,8 @@ export const requestBody = ${
 export interface RequestBody ${requestBodyInterfaceBody}
 `;
       return `
-export namespace ${identifier(operationObject.operationId!)} {
+${getOperationObjectJSDoc(x)}
+export namespace ${operationIdIdentifier} {
 ${addIndentLevel(content)}
 }`;
     })
@@ -611,7 +667,7 @@ export const generateOpenApiDefinition = (
   openAPIObject: OpenAPIObject,
   operations?: ReadonlyArray<string>
 ) => `
-export namespace paths {
+export namespace operations {
 ${addIndentLevel(generatePathsDefinition(openAPIObject.paths, operations))}
 }
 export namespace schemas {
@@ -629,20 +685,12 @@ ${formatEntries(
     value:
       `{\n` +
       formatEntries(
-        Object.values(doc.openApiObject.paths)
-          .map(x => x as PathItemObject)
-          .flatMap(x =>
-            httpMethods
-              .map(httpMethod => x[httpMethod]?.operationId)
-              .filter(isNotNil)
-          )
-          .filter(operationId => doc.operations?.includes(operationId) ?? true)
-          .map(x => identifier(x))
-          .map(operationId => ({
-            key: operationId,
-            modifiers: ['readonly'],
-            value: `{ readonly Parameter: ${doc.namespace}.paths.${operationId}.Parameter, readonly Response: ${doc.namespace}.paths.${operationId}.Response, readonly RequestBody: ${doc.namespace}.paths.${operationId}.RequestBody, readonly requestBody: typeof ${doc.namespace}.paths.${operationId}.requestBody }`,
-          }))
+        pathsObjectEntries(doc.openApiObject.paths, doc.operations).map(x => ({
+          key: x.operationIdIdentifier,
+          modifiers: ['readonly'],
+          doc: getOperationObjectJSDoc(x),
+          value: `{ readonly Parameter: ${doc.namespace}.operations.${x.operationIdIdentifier}.Parameter, readonly Response: ${doc.namespace}.operations.${x.operationIdIdentifier}.Response, readonly RequestBody: ${doc.namespace}.operations.${x.operationIdIdentifier}.RequestBody, readonly requestBody: typeof ${doc.namespace}.operations.${x.operationIdIdentifier}.requestBody }`,
+        }))
       ) +
       '\n}',
   }))

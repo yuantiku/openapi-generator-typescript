@@ -8,7 +8,7 @@ import { pick } from 'lodash';
 import { warpHttpClient } from './warp-http-client';
 import * as openApiDocs from './open-api-docs';
 import type { OpenApiOperationsDictionary } from './open-api-docs';
-import type { Object } from 'ts-toolbelt';
+import type { Any } from 'ts-toolbelt';
 
 declare const FetchHttpClientURI: 'FetchHttpClientURI';
 
@@ -23,12 +23,10 @@ declare module './warp-http-client' {
   }
 }
 
-type OpenApiRequest<
-  Params,
-  Response,
-  Body,
-  requestBody
-> = true extends Object.At<{} & requestBody, 'required'>
+type OpenApiRequest<Params, Response, Body, requestBody> = true extends Any.At<
+  {} & requestBody,
+  'required'
+>
   ? (param: Params, body: Body) => Promise<Response>
   : (param: Params, body?: Body) => Promise<Response>;
 

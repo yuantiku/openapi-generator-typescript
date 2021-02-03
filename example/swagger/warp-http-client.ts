@@ -1,5 +1,5 @@
 import { mapValues } from 'lodash';
-import type { Union, Object } from 'ts-toolbelt';
+import type { Object, Any } from 'ts-toolbelt';
 
 export interface OpenApiRequestRegistry<Params, Response, Body, requestBody> {}
 
@@ -16,7 +16,7 @@ type OpenApiRequest<
   Response,
   Body,
   requestBody
-> = Object.At<OpenApiRequestRegistry<Params, Response, Body, requestBody>, URI>;
+> = Any.At<OpenApiRequestRegistry<Params, Response, Body, requestBody>, URI>;
 
 export const warpHttpClient = <OpenApiOperationsDictionary>(
   openApiDocs: any
@@ -24,7 +24,7 @@ export const warpHttpClient = <OpenApiOperationsDictionary>(
   httpClient: (
     requestParams: {
       readonly docNamespace: keyof OpenApiOperationsDictionary;
-      readonly operationId: Union.Keys<
+      readonly operationId: Any.Keys<
         OpenApiOperationsDictionary[keyof OpenApiOperationsDictionary]
       >;
       readonly getUrl: (params: any) => string;
@@ -41,9 +41,9 @@ export const warpHttpClient = <OpenApiOperationsDictionary>(
     options: any
   ) => any
 ) =>
-  (mapValues(openApiDocs, ({ paths }, docNamespace: any) =>
+  (mapValues(openApiDocs, ({ operations }, docNamespace: any) =>
     mapValues(
-      paths,
+      operations,
       ({ getUrl, method, parameterNames }: any, operationId: any) => (
         params: any,
         body: any,
@@ -66,25 +66,25 @@ export const warpHttpClient = <OpenApiOperationsDictionary>(
     [namespace in keyof OpenApiOperationsDictionary]: {
       [operationId in keyof OpenApiOperationsDictionary[namespace]]: OpenApiRequest<
         uri,
-        Object.At<
+        Any.At<
           {} & OpenApiOperationsDictionary[namespace][operationId],
           'Parameter'
         >,
         Object.UnionOf<
           {} & Object.UnionOf<
-            {} & Object.At<
+            {} & Any.At<
               {} & OpenApiOperationsDictionary[namespace][operationId],
               'Response'
             >
           >
         >,
         Object.UnionOf<
-          {} & Object.At<
+          {} & Any.At<
             {} & OpenApiOperationsDictionary[namespace][operationId],
             'RequestBody'
           >
         >,
-        Object.At<
+        Any.At<
           {} & OpenApiOperationsDictionary[namespace][operationId],
           'requestBody'
         >

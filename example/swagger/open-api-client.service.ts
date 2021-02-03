@@ -5,7 +5,7 @@ import type { Observable } from 'rxjs';
 import { warpHttpClient } from './warp-http-client';
 import * as openApiDocs from './open-api-docs';
 import type { OpenApiOperationsDictionary } from './open-api-docs';
-import type { Object } from 'ts-toolbelt';
+import type { Any } from 'ts-toolbelt';
 
 declare const AngularHttpClientURI: 'AngularHttpClientURI';
 
@@ -20,12 +20,10 @@ declare module './warp-http-client' {
   }
 }
 
-type OpenApiRequest<
-  Params,
-  Response,
-  Body,
-  requestBody
-> = true extends Object.At<{} & requestBody, 'required'>
+type OpenApiRequest<Params, Response, Body, requestBody> = true extends Any.At<
+  {} & requestBody,
+  'required'
+>
   ? {
       (param: Params, body: Body): Observable<Response>;
       (
