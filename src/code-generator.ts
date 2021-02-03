@@ -14,15 +14,9 @@ import type {
 import { ApiDocumentWithObject } from './config-file-model';
 import { identifier, property } from 'safe-identifier';
 import { parseUrlTemplate } from './utils';
-import { isNotUndefined, isNotNil } from 'utils-ts';
+import { isNotUndefined, isNotNil, identity } from 'utils-ts';
 import * as assert from 'assert';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const lodash = require('lodash') as typeof import('lodash');
-const { repeat, difference, mapValues, omit } = lodash;
-// eslint-disable-next-line
-export const identity: <T>(value: T) => T = lodash.identity;
+import { repeat, difference, mapValues, omit } from 'lodash-es';
 
 function isReferenceObject(obj: object): obj is ReferenceObject {
   return obj.hasOwnProperty('$ref');

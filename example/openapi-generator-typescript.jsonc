@@ -2,11 +2,6 @@
   // list of all swagger document services we use
   "documents": [
     {
-      "namespace": "Petstore3",
-      "url": "https://petstore3.swagger.io/api/v3/openapi.json",
-      "path": "api-docs/petstore3.json"
-    },
-    {
       "namespace": "LinkExample",
       "url": "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/link-example.yaml",
       "path": "api-docs/link-example.yaml"

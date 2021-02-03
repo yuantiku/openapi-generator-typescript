@@ -1,19 +1,17 @@
 import fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
+import yargs from 'yargs';
+// @ts-expect-error
+import { hideBin } from 'yargs/helpers';
+import * as JSONC from 'jsonc-parser';
 import {
   ConfigFile,
   ApiDocument,
   ApiDocumentWithObject,
 } from './config-file-model';
 import { generateAllAPI } from './code-generator';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-
-const { safeLoad } = require('js-yaml') as typeof import('js-yaml');
-const JSONC = require('jsonc-parser') as typeof import('jsonc-parser');
-const yargs = require('yargs') as typeof import('yargs');
 
 function isYaml(path: string) {
   return path.endsWith('.yaml') || path.endsWith('.yml');
@@ -46,7 +44,7 @@ async function generateTarget(config: ConfigFile, configDir: string) {
         .then(
           (x): ApiDocumentWithObject => ({
             ...doc,
-            openApiObject: (isYaml(doc.path) ? safeLoad : JSON.parse)(x),
+            openApiObject: (isYaml(doc.path) ? yaml.load : JSON.parse)(x),
           })
         )
     )
@@ -71,7 +69,7 @@ async function getConfig(configArg: string) {
  * @internal
  */
 export async function _runCli() {
-  const argv = yargs
+  const argv = yargs(hideBin(process.argv))
     .strict()
     .usage('$0 [options]')
     .option('config', {

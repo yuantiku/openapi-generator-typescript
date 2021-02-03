@@ -1,10 +1,9 @@
-// @ts-check
 import commonjs from '@rollup/plugin-commonjs';
 import builtinModules from 'builtin-modules';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { createRequire } from 'module';
 
-// @ts-ignore
+// @ts-expect-error
 const require = createRequire(import.meta.url);
 
 const { getBabelInputPlugin } = require('@rollup/plugin-babel');
@@ -33,7 +32,6 @@ const config = {
       babelHelpers: 'bundled',
     }),
     nodeResolve({ extensions, preferBuiltins: true }),
-    // @ts-ignore
     commonjs({
       include: /node_modules/,
     }),
