@@ -135,6 +135,7 @@ export function formatSchemasJSDoc({
   description,
   format,
   example,
+  deprecated,
 }: SchemaObject) {
   let a: string[] = [];
   if (description) {
@@ -149,6 +150,10 @@ export function formatSchemasJSDoc({
    */
   if (example) {
     a.push('@example', example);
+  }
+
+  if (deprecated) {
+    a.push('@deprecated');
   }
 
   return formatComments(a);
