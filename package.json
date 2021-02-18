@@ -1,6 +1,6 @@
 {
   "name": "@yuanfudao/openapi-generator-typescript",
-  "version": "0.2.0-alpha.0",
+  "version": "0.2.0-alpha.1",
   "main": "dist/openapi-generator-typescript.mjs",
   "repository": "https://github.com/yuantiku/openapi-generator-typescript.git",
   "author": "ZHAO Jinxiang <xiaoxiangmoe@gmail.com>",
